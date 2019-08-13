@@ -149,20 +149,21 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     public CameraLauncher() {
     }
 
-    public CameraLauncher(CordovaInterface cordova, CallbackContext callbackContext, CordovaUri imageUri) {
+    public CameraLauncher(CordovaInterface cordova, CallbackContext callbackContext, CordovaUri imageUri, CameraOptions cameraOptions) {
         this.callbackContext = callbackContext;
         this.cordova = cordova;
         this.imageUri = imageUri;
 
-        this.srcType = CAMERA;
-        this.destType = FILE_URI;
-        this.saveToPhotoAlbum = false;
-        this.targetHeight = 0;
-        this.targetWidth = 0;
-        this.encodingType = JPEG;
-        this.mediaType = PICTURE;
-        this.mQuality = 50;
-        this.correctOrientation = true;
+        this.destType = cameraOptions.destType;
+        this.srcType = cameraOptions.srcType;
+        this.mQuality = cameraOptions.mQuality;
+        this.targetWidth = cameraOptions.targetWidth;
+        this.targetHeight = cameraOptions.targetHeight;
+        this.encodingType = cameraOptions.encodingType;
+        this.mediaType = cameraOptions.mediaType;
+        this.allowEdit = cameraOptions.allowEdit;
+        this.correctOrientation = cameraOptions.correctOrientation;
+        this.saveToPhotoAlbum = cameraOptions.saveToPhotoAlbum;
 
     }
 
@@ -701,8 +702,22 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
 
     private void getGpsLocation(String sourcePath, int rotate, String thisJson, ExifHelper exif, Intent intent) {
+
+        CameraOptions cameraOptions = new CameraOptions();
+
+        cameraOptions.destType = this.destType;
+        cameraOptions.srcType = this.srcType;
+        cameraOptions.mQuality = this.mQuality;
+        cameraOptions.targetWidth = this.targetWidth;
+        cameraOptions.targetHeight = this.targetHeight;
+        cameraOptions.encodingType = this.encodingType;
+        cameraOptions.mediaType = this.mediaType;
+        cameraOptions.allowEdit = this.allowEdit;
+        cameraOptions.correctOrientation = this.correctOrientation;
+        cameraOptions.saveToPhotoAlbum = this.saveToPhotoAlbum;
+
         CordovaLocationServices cordovaLocationServices = new CordovaLocationServices(cordova);
-        cordovaLocationServices.getLocation(callbackContext, sourcePath, rotate, thisJson, exif, imageUri, intent);
+        cordovaLocationServices.getLocation(callbackContext, sourcePath, rotate, thisJson, exif, imageUri, intent, cameraOptions);
     }
 
     private String getPicutresPath() {

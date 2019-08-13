@@ -70,6 +70,7 @@ public class CordovaLocationServices implements
     public ExifHelper exif;
     private CordovaUri imageUri;
     public Intent intent;
+    public CameraOptions cameraOptions;
     CallbackContext callbackContext;
 
 
@@ -113,7 +114,8 @@ public class CordovaLocationServices implements
                                String thisJson,
                                ExifHelper exif,
                                CordovaUri imageUri,
-                               Intent intent
+                               Intent intent,
+                               CameraOptions cameraOptions
     ) {
 
         this.sourcePath = sourcePath;
@@ -123,6 +125,7 @@ public class CordovaLocationServices implements
         this.imageUri = imageUri;
         this.intent = intent;
         this.callbackContext = callbackContext;
+        this.cameraOptions = cameraOptions;
 
         final String id = "";
         final boolean highAccuracy = true;
@@ -132,7 +135,7 @@ public class CordovaLocationServices implements
 
         if (highAccuracy && isGPSdisabled()) {
             try {
-                CameraLauncher cameraLauncher = new CameraLauncher(this.cordova, callbackContext, this.imageUri);
+                CameraLauncher cameraLauncher = new CameraLauncher(this.cordova, callbackContext, this.imageUri, this.cameraOptions);
                 cameraLauncher.processPhotoFromCamera(this.sourcePath, this.rotate, this.thisJson, this.exif, this.intent);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -200,7 +203,7 @@ public class CordovaLocationServices implements
             exifHelper.setGpsLongitudeRef(longitude >= 0 ? "E" : "W");
             exifHelper.setGpsLongitude(getDms(longitude));
 
-            CameraLauncher cameraLauncher = new CameraLauncher(this.cordova, callbackContext, this.imageUri);
+            CameraLauncher cameraLauncher = new CameraLauncher(this.cordova, callbackContext, this.imageUri, this.cameraOptions);
             cameraLauncher.processPhotoFromCamera(this.sourcePath, this.rotate, g.toJson(exifHelper), exifHelper, this.intent);
 
 
@@ -214,7 +217,7 @@ public class CordovaLocationServices implements
 
     public void savePhotoFromCamera() {
         try {
-            CameraLauncher cameraLauncher = new CameraLauncher(this.cordova, this.callbackContext, this.imageUri);
+            CameraLauncher cameraLauncher = new CameraLauncher(this.cordova, this.callbackContext, this.imageUri, this.cameraOptions);
             cameraLauncher.processPhotoFromCamera(this.sourcePath, this.rotate, this.thisJson, this.exif, this.intent);
         } catch (Exception e) {
             e.printStackTrace();

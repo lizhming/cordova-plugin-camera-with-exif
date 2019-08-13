@@ -172,6 +172,10 @@ public class ExifHelper {
         this.outFile.saveAttributes();
     }
 
+    public String getGpsLatitude() {
+        return this.gpsLatitude;
+    }
+
     public int getOrientation() {
         int o = Integer.parseInt(this.orientation);
 
@@ -186,6 +190,23 @@ public class ExifHelper {
         } else {
             return 0;
         }
+    }
+
+
+    public void setGpsLatitudeRef(String gpsLatitudeRef) {
+        this.gpsLatitudeRef = gpsLatitudeRef;
+    }
+
+    public void setGpsLatitude(String gpsLatitude) {
+        this.gpsLatitude = gpsLatitude;
+    }
+
+    public void setGpsLongitudeRef(String gpsLongitudeRef) {
+        this.gpsLongitudeRef = gpsLongitudeRef;
+    }
+
+    public void setGpsLongitude(String gpsLongitude) {
+        this.gpsLongitude = gpsLongitude;
     }
 
     public void resetOrientation() {

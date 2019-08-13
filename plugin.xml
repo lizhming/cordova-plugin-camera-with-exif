@@ -35,6 +35,8 @@
 
     <!-- android -->
     <platform name="android">
+        <framework src="com.google.android.gms:play-services-location:11.6.2" />
+
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="Camera">
                 <param name="android-package" value="org.apache.cordova.camera.CameraLauncher"/>
@@ -42,6 +44,9 @@
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
         </config-file>
 		
 		<config-file target="AndroidManifest.xml" parent="application">
@@ -60,7 +65,13 @@
         <source-file src="src/android/CordovaUri.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/FileHelper.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/ExifHelper.java" target-dir="src/org/apache/cordova/camera" />
-		<source-file src="src/android/gson-2.3.1.jar" target-dir="libs" />
+
+        <source-file src="src/android/CordovaLocationServices.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/CordovaLocationListener.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/GApiUtils.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/LocationUtils.java" target-dir="src/org/apache/cordova/camera" />
+
+        <source-file src="src/android/gson-2.3.1.jar" target-dir="libs" />
         <source-file src="src/android/xml/provider_paths.xml" target-dir="res/xml" />
 
         <js-module src="www/CameraPopoverHandle.js" name="CameraPopoverHandle">
@@ -69,6 +80,7 @@
 
          <preference name="ANDROID_SUPPORT_V4_VERSION" default="27.+"/>
         <framework src="com.android.support:support-v4:$ANDROID_SUPPORT_V4_VERSION"/>
+
 
      </platform>
 

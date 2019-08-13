@@ -77,6 +77,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.PermissionInfo;
 import android.content.ClipData;
+import org.apache.cordova.CordovaInterface;
 
 /**
  * This class launches the camera view, allows the user to take a picture, closes the camera view,
@@ -125,7 +126,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     private boolean orientationCorrected;   // Has the picture's orientation been corrected
     private boolean allowEdit;              // Should we allow the user to crop the image.
 
-    protected final static String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    protected final static String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
 
     public CallbackContext callbackContext;
     private int numPics;
@@ -135,6 +136,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     private Uri croppedUri;
     private String applicationId;
 
+
     private class JsonResultObj {
         private String filename = "";
         private String json_metadata = "";
@@ -142,6 +144,26 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         JsonResultObj() {
             //no-args constructor
         }
+    }
+
+    public CameraLauncher() {
+    }
+
+    public CameraLauncher(CordovaInterface cordova, CallbackContext callbackContext, CordovaUri imageUri) {
+        this.callbackContext = callbackContext;
+        this.cordova = cordova;
+        this.imageUri = imageUri;
+
+        this.srcType = CAMERA;
+        this.destType = FILE_URI;
+        this.saveToPhotoAlbum = false;
+        this.targetHeight = 0;
+        this.targetWidth = 0;
+        this.encodingType = JPEG;
+        this.mediaType = PICTURE;
+        this.mQuality = 50;
+        this.correctOrientation = true;
+
     }
 
     /**
@@ -228,6 +250,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     //--------------------------------------------------------------------------
     // LOCAL METHODS
     //--------------------------------------------------------------------------
+
 
     private String getTempDirectoryPath() {
         File cache = null;
@@ -499,44 +522,8 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         }
     }
 
-    /**
-     * Applies all needed transformation to the image received from the camera.
-     *
-     * @param destType In which form should we return the image
-     * @param intent   An Intent, which can return result data to the caller (various data can be attached to Intent "extras").
-     */
-    private void processResultFromCamera(int destType, Intent intent) throws IOException {
-        int rotate = 0;
-        String thisJson = "";
+    protected void processPhotoFromCamera(String sourcePath, int rotate, String thisJson, ExifHelper exif, Intent intent) throws IOException {
 
-        // Create an ExifHelper to save the exif data that is lost during compression
-        ExifHelper exif = new ExifHelper();
-        String sourcePath = (this.allowEdit && this.croppedUri != null) ?
-                FileHelper.stripFileProtocol(this.croppedUri.toString()) :
-                this.imageUri.getFilePath();
-
-
-        if (this.encodingType == JPEG) {
-            try {
-                //We don't support PNG, so let's not pretend we do
-                exif.createInFile(sourcePath);
-                exif.readExifData();
-                rotate = exif.getOrientation();
-
-                // REM Modifications
-
-                Gson gson = new GsonBuilder()
-                        .setExclusionStrategies(new JsonExclusionStrategy(ExifInterface.class))
-                        .serializeNulls()
-                        .create();
-
-                //Convert exif to JSON
-                thisJson = gson.toJson(exif);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
         Bitmap bitmap = null;
         Uri galleryUri = null;
@@ -558,7 +545,6 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             refreshGallery(galleryUri);
         }
 
-        // If sending base64 image back
         if (destType == DATA_URL) {
             bitmap = getScaledBitmap(sourcePath);
 
@@ -583,10 +569,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             }
 
             this.processPicture(bitmap, this.encodingType, thisJson);
-        }
-
-        // If sending filename back
-        else if (destType == FILE_URI || destType == NATIVE_URI) {
+        } else if (destType == FILE_URI || destType == NATIVE_URI) {
 
             // package up file name and exif as JSON
 
@@ -666,6 +649,60 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
         this.cleanup(FILE_URI, this.imageUri.getFileUri(), galleryUri, bitmap);
         bitmap = null;
+    }
+
+    /**
+     * Applies all needed transformation to the image received from the camera.
+     *
+     * @param destType In which form should we return the image
+     * @param intent   An Intent, which can return result data to the caller (various data can be attached to Intent "extras").
+     */
+    private void processResultFromCamera(int destType, Intent intent) throws IOException {
+        int rotate = 0;
+        String thisJson = "";
+
+        // Create an ExifHelper to save the exif data that is lost during compression
+        ExifHelper exif = new ExifHelper();
+        String sourcePath = (this.allowEdit && this.croppedUri != null) ?
+                FileHelper.stripFileProtocol(this.croppedUri.toString()) :
+                this.imageUri.getFilePath();
+
+        if (this.encodingType == JPEG) {
+            try {
+                //We don't support PNG, so let's not pretend we do
+                exif.createInFile(sourcePath);
+                exif.readExifData();
+                rotate = exif.getOrientation();
+
+                // REM Modifications
+
+                Gson gson = new GsonBuilder()
+                        .setExclusionStrategies(new JsonExclusionStrategy(ExifInterface.class))
+                        .serializeNulls()
+                        .create();
+
+                //Convert exif to JSON
+                thisJson = gson.toJson(exif);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (exif.getGpsLatitude() == null) {
+                this.getGpsLocation(sourcePath, rotate, thisJson, exif, intent);
+            } else {
+                this.processPhotoFromCamera(sourcePath, rotate, thisJson, exif, intent);
+            }
+
+        } else {
+            this.processPhotoFromCamera(sourcePath, rotate, thisJson, exif, intent);
+        }
+
+    }
+
+
+    private void getGpsLocation(String sourcePath, int rotate, String thisJson, ExifHelper exif, Intent intent) {
+        CordovaLocationServices cordovaLocationServices = new CordovaLocationServices(cordova);
+        cordovaLocationServices.getLocation(callbackContext, sourcePath, rotate, thisJson, exif, imageUri, intent);
     }
 
     private String getPicutresPath() {

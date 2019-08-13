@@ -80,6 +80,7 @@
         </js-module>
 
          <preference name="ANDROID_SUPPORT_V4_VERSION" default="27.+"/>
+        <framework src="src/android/build.gradle" custom="true" type="gradleReference" />
         <framework src="com.android.support:support-v4:$ANDROID_SUPPORT_V4_VERSION"/>
 
 

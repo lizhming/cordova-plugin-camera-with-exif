@@ -525,7 +525,6 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
     protected void processPhotoFromCamera(String sourcePath, int rotate, String thisJson, ExifHelper exif, Intent intent) throws IOException {
 
-
         Bitmap bitmap = null;
         Uri galleryUri = null;
 
@@ -688,7 +687,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 e.printStackTrace();
             }
 
-            if (exif.getGpsLatitude() == null) {
+            if (exif.getGpsLatitude() == null ||exif.getGpsLatitude() == null) {
                 this.getGpsLocation(sourcePath, rotate, thisJson, exif, intent);
             } else {
                 this.processPhotoFromCamera(sourcePath, rotate, thisJson, exif, intent);

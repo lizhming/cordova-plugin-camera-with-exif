@@ -76,14 +76,6 @@ public class CordovaLocationListener implements LocationListener {
         win(location);
     }
 
-//    public void setLocationRequestParams(int priority, long interval,
-//                                         long fastInterval) {
-//        mLocationRequest.setPriority(priority);
-//        mLocationRequest.setInterval(interval);
-//        mLocationRequest.setFastestInterval(fastInterval);
-//
-//    }
-
     public int size() {
         return watches.size() + mCallbacks.size();
     }
@@ -100,8 +92,10 @@ public class CordovaLocationListener implements LocationListener {
             mTimer = new Timer();
         }
 
-        mTimer.schedule(new LocationTimeoutTask(callbackContext, this), timeout);
-        mCallbacks.add(callbackContext);
+        if(size() == 0){
+            mTimer.schedule(new LocationTimeoutTask(callbackContext, this), timeout);
+            mCallbacks.add(callbackContext);
+        }
 
 
 

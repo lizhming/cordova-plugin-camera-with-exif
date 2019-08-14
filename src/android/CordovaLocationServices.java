@@ -140,7 +140,6 @@ public class CordovaLocationServices implements
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         } else {
             if (getGApiUtils().servicesConnected()) {
                 if (!mGApiClient.isConnected() && !mGApiClient.isConnecting()) {
@@ -202,7 +201,6 @@ public class CordovaLocationServices implements
             exifHelper.setGpsLatitude(getDms(latitude));
             exifHelper.setGpsLongitudeRef(longitude >= 0 ? "E" : "W");
             exifHelper.setGpsLongitude(getDms(longitude));
-
             CameraLauncher cameraLauncher = new CameraLauncher(this.cordova, callbackContext, this.imageUri, this.cameraOptions);
             cameraLauncher.processPhotoFromCamera(this.sourcePath, this.rotate, g.toJson(exifHelper), exifHelper, this.intent);
 
@@ -261,19 +259,22 @@ public class CordovaLocationServices implements
     }
 
     private void getLastLocation(CallbackContext callbackContext) {
-        int maximumAge;
-        try {
-            maximumAge = 10000;
-            Location last = LocationServices.FusedLocationApi.getLastLocation(mGApiClient);
+        int maximumAge = 100000;
 
-            // Check if we can use lastKnownLocation to get a quick reading and use
-            // less battery
+        try {
+            Location last = null;
+            if (mGApiClient != null && mGApiClient.isConnected()) {
+                last = LocationServices.FusedLocationApi.getLastLocation(mGApiClient);
+            }
+//            // Check if we can use lastKnownLocation to get a quick reading and use
+//            // less battery
 
             if (last != null && (System.currentTimeMillis() - last.getTime()) <= maximumAge) {
                 returnLocationJSON(last, callbackContext);
             } else {
                 getCurrentLocation(callbackContext, 5000);
             }
+
         } catch (Exception e) {
             getCurrentLocation(callbackContext, 5000);
             e.printStackTrace();

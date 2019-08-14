@@ -176,6 +176,10 @@ public class ExifHelper {
         return this.gpsLatitude;
     }
 
+    public String getGpsLongitude() {
+        return this.gpsLongitude;
+    }
+
     public int getOrientation() {
         int o = Integer.parseInt(this.orientation);
 

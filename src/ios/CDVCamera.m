@@ -437,17 +437,17 @@ static NSString* toBase64(NSData* data) {
     
     UIImage* scaledImage = nil;
     
-    if ((options.targetSize.width > 0) && (options.targetSize.height > 0)) {
-    
-        // if cropToSize, resize image and crop to target size, otherwise resize to fit target without cropping
-        if (options.cropToSize) {
-            scaledImage = [image imageByScalingAndCroppingForSize:options.targetSize];
-        } else {
-            scaledImage = [image imageByScalingNotCroppingForSize:options.targetSize];
-        }
-    }
-    
-    return (scaledImage == nil ? image : scaledImage);
+     if ((options.targetSize.width > 0) && (options.targetSize.height > 0)) {
+
+         // if cropToSize, resize image and crop to target size, otherwise resize to fit target without cropping
+         if (options.cropToSize) {
+             scaledImage = [image imageByScalingAndCroppingForSize:options.targetSize];
+         } else {
+             scaledImage = [image imageByScalingNotCroppingForSize:options.targetSize];
+         }
+     }
+
+     return (scaledImage == nil ? image : scaledImage);
 }
 
 - (CDVPluginResult*)resultForImage:(CDVPictureOptions*)options info:(NSDictionary*)info
@@ -469,7 +469,7 @@ static NSString* toBase64(NSData* data) {
         case DestinationTypeFileUri: {
             
             image = [self retrieveImage:info options:options];
-            NSData* data = [self processImage:image info:info options:options];
+            __block NSData* data = [self processImage:image info:info options:options];
             if (data) {
                 
                 NSString* extension = options.encodingType == EncodingTypePNG? @"png" : @"jpg";
@@ -535,12 +535,17 @@ static NSString* toBase64(NSData* data) {
                             
                                 // add metadata to image that is written to temp file
                             
+                                NSData* data_content = [self.data mutableCopy];
+                               
                                 CGImageSourceRef sourceImage = CGImageSourceCreateWithData((__bridge_retained CFDataRef)self.data, NULL);
                                 CFStringRef sourceType = CGImageSourceGetType(sourceImage);
         
                                 CGImageDestinationRef destinationImage = CGImageDestinationCreateWithData((__bridge CFMutableDataRef)self.data, sourceType, 1, NULL);
                                 CGImageDestinationAddImageFromSource(destinationImage, sourceImage, 0, (__bridge CFDictionaryRef)self.metadata);
         
+                                self.data = data = data_content;
+                                data_content = nil;
+                                
                                 ok = CGImageDestinationFinalize(destinationImage);
         
                                 #ifdef __REM_CoreImage__
@@ -833,12 +838,16 @@ static NSString* toBase64(NSData* data) {
     BOOL ok = NO;
     
     if (self.metadata) {
-    
+        
+        NSData* data_content = [self.data mutableCopy];
         CGImageSourceRef sourceImage = CGImageSourceCreateWithData((__bridge_retained CFDataRef)self.data, NULL);
         CFStringRef sourceType = CGImageSourceGetType(sourceImage);
         
         CGImageDestinationRef destinationImage = CGImageDestinationCreateWithData((__bridge CFMutableDataRef)self.data, sourceType, 1, NULL);
         CGImageDestinationAddImageFromSource(destinationImage, sourceImage, 0, (__bridge CFDictionaryRef)self.metadata);
+        
+        self.data = data_content;
+        data_content = nil;
         
         ok = CGImageDestinationFinalize(destinationImage);
         

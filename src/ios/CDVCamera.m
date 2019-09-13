@@ -534,18 +534,14 @@ static NSString* toBase64(NSData* data) {
                             if (self.metadata){
                             
                                 // add metadata to image that is written to temp file
-                            
-                                NSData* data_content = [self.data mutableCopy];
+                                CGImageRef imageRef = image.CGImage;
                                
                                 CGImageSourceRef sourceImage = CGImageSourceCreateWithData((__bridge_retained CFDataRef)self.data, NULL);
                                 CFStringRef sourceType = CGImageSourceGetType(sourceImage);
         
                                 CGImageDestinationRef destinationImage = CGImageDestinationCreateWithData((__bridge CFMutableDataRef)self.data, sourceType, 1, NULL);
-                                CGImageDestinationAddImageFromSource(destinationImage, sourceImage, 0, (__bridge CFDictionaryRef)self.metadata);
-        
-                                self.data = data = data_content;
-                                data_content = nil;
-                                
+                                CGImageDestinationAddImage(destinationImage , imageRef, (CFDictionaryRef)self.metadata);
+
                                 ok = CGImageDestinationFinalize(destinationImage);
         
                                 #ifdef __REM_CoreImage__
@@ -838,17 +834,16 @@ static NSString* toBase64(NSData* data) {
     BOOL ok = NO;
     
     if (self.metadata) {
-        
-        NSData* data_content = [self.data mutableCopy];
+
+        UIImage *image = [UIImage imageWithData:self.data];
+        CGImageRef imageRef = image.CGImage;
+
         CGImageSourceRef sourceImage = CGImageSourceCreateWithData((__bridge_retained CFDataRef)self.data, NULL);
         CFStringRef sourceType = CGImageSourceGetType(sourceImage);
         
         CGImageDestinationRef destinationImage = CGImageDestinationCreateWithData((__bridge CFMutableDataRef)self.data, sourceType, 1, NULL);
-        CGImageDestinationAddImageFromSource(destinationImage, sourceImage, 0, (__bridge CFDictionaryRef)self.metadata);
-        
-        self.data = data_content;
-        data_content = nil;
-        
+        CGImageDestinationAddImage(destinationImage , imageRef, (CFDictionaryRef)self.metadata);
+
         ok = CGImageDestinationFinalize(destinationImage);
         
         #ifdef __REM_CoreImage__
